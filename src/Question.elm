@@ -1,6 +1,7 @@
 module Question exposing (Question, getQuestion)
 
-import Random exposing (Seed)
+import Random exposing (Seed, int, step)
+import Tuple exposing (second)
 
 
 type alias Choice =
@@ -17,7 +18,7 @@ type alias Question =
 
 getQuestion : Seed -> ( Seed, Question )
 getQuestion seed =
-    ( seed, { choices = allChoices } )
+    ( step (int 1 10) seed |> second, { choices = allChoices } )
 
 
 allChoices : List Choice
