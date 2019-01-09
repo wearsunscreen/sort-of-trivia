@@ -1,5 +1,7 @@
 module Update exposing (init, subs, update)
 
+import DnD exposing (Draggable, MousePosition)
+import Maybe exposing (withDefault)
 import Model exposing (..)
 import Random exposing (Seed, initialSeed)
 import Task exposing (Task, perform)
@@ -8,7 +10,12 @@ import Time exposing (now, posixToMillis)
 
 init : () -> ( Model, Cmd Msg )
 init _ =
-    ( Model Nothing Nothing, Cmd.none )
+    ( { draggable = dnd.model
+      , randomSeed = Nothing
+      , startTime = Nothing
+      }
+    , Cmd.none
+    )
 
 
 subs : Model -> Sub Msg
@@ -17,10 +24,20 @@ subs model =
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
-update msg model =
-    case msg of
+update action model =
+    case action of
         CloseWelcomeScreen ->
             ( model, Task.perform StartApp Time.now )
+
+        DragMsg msg ->
+            ( { model
+                | draggable = DnD.update msg model.draggable
+              }
+            , Cmd.none
+            )
+
+        DropToGrid item ->
+            ( model, Cmd.none )
 
         StartApp time ->
             ( { model
