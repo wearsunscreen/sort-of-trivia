@@ -1,5 +1,7 @@
-module Question exposing (Question, getQuestion)
+module Question exposing (Category(..), Question, createQuestion)
 
+import List exposing (drop, filter, head, length, member, reverse, sortBy, take)
+import Maybe exposing (withDefault)
 import Random exposing (Seed, int, step)
 import Tuple exposing (second)
 
@@ -8,6 +10,7 @@ type Category
     = USCapitals
     | MXCapitals
     | WorldCapitals
+    | EmptyCategory
 
 
 type alias Choice =
@@ -20,13 +23,67 @@ type alias Choice =
 
 
 type alias Question =
-    { choices : List Choice
+    { centerChoice : Choice
+    , neChoice : Choice
+    , nwChoice : Choice
+    , seChoice : Choice
+    , swChoice : Choice
     }
 
 
-getQuestion : Seed -> ( Seed, Question )
-getQuestion seed =
-    ( step (int 1 10) seed |> second, { choices = allChoices } )
+{-| create a multiple choice question by randomly selecting choices
+-}
+createQuestion : Seed -> List Category -> ( Seed, Question )
+createQuestion seed cats =
+    let
+        goodChoices =
+            filter (\c -> member c.category cats) allChoices
+
+        cc =
+            withDefault emptyChoice <| head goodChoices
+
+        ne =
+            withDefault emptyChoice <| head <| drop 1 goodChoices
+
+        nw =
+            withDefault emptyChoice <| head <| drop 2 goodChoices
+
+        se =
+            withDefault emptyChoice <| head <| drop 3 goodChoices
+
+        sw =
+            withDefault emptyChoice <| head <| drop 4 goodChoices
+    in
+    ( step (int 1 10) seed |> second
+    , { centerChoice = cc
+      , neChoice = ne
+      , nwChoice = nw
+      , seChoice = se
+      , swChoice = sw
+      }
+    )
+
+
+centerChoices : List Choice -> List Choice
+centerChoices choices =
+    let
+        margin =
+            length choices // 10
+
+        noLeft =
+            drop margin <| sortBy .measureX allChoices
+    in
+    drop margin <| reverse noLeft
+
+
+emptyChoice : Choice
+emptyChoice =
+    { measureX = 0.0
+    , measureY = 0.0
+    , city = "empty"
+    , state = "empty"
+    , category = EmptyCategory
+    }
 
 
 allChoices : List Choice
