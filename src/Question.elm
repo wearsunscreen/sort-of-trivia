@@ -36,8 +36,16 @@ type alias Question =
 createQuestion : Seed -> List Category -> ( Seed, Question )
 createQuestion seed cats =
     let
+        cats_ =
+            case cats of
+                [] ->
+                    [ USCapitals ]
+
+                _ ->
+                    cats
+
         goodChoices =
-            filter (\c -> member c.category cats) allChoices
+            filter (\c -> member c.category cats_) allChoices
 
         cc =
             withDefault emptyChoice <| head goodChoices

@@ -2,8 +2,8 @@ module QuestionTests exposing (suite)
 
 import Expect exposing (Expectation)
 import Fuzz exposing (Fuzzer, int, list, string)
-import List exposing (all, any, foldl, length, map, range)
-import List.Extra exposing (unique)
+import List exposing (all, any, foldl, length, map, member, range)
+import List.Extra exposing (unique, zip)
 import Question exposing (Category(..), Question, createQuestion)
 import Random exposing (Generator, initialSeed, step)
 import Set exposing (Set, fromList, toList)
@@ -67,15 +67,42 @@ bool =
     Random.map ((==) 1) (Random.int 0 1)
 
 
-randomlyExcludeElements : Int -> List a -> List Bool
+randomCategories : Int -> List Category
+randomCategories seed =
+    let
+        cats =
+            randomlyExcludeElements seed
+                [ USCapitals
+                , MXCapitals
+                , WorldCapitals
+                ]
+    in
+    case cats of
+        [] ->
+            [ USCapitals ]
+
+        _ ->
+            cats
+
+
+randomlyExcludeElements : Int -> List a -> List a
 randomlyExcludeElements seed list =
     let
         bools =
             List.range seed (length list + seed)
                 |> map (\s -> initialSeed s)
                 |> map (\s -> first (step bool s))
+                |> zip list
+
+        f : ( a, Bool ) -> List a -> List a
+        f ( cat, yesNo ) acc =
+            if yesNo then
+                cat :: acc
+
+            else
+                acc
     in
-    bools
+    foldl f [] bools
 
 
 suite : Test
@@ -91,23 +118,39 @@ suite =
         , fuzz int "createQuestion returns a non-empty question" <|
             \randSeed ->
                 let
+                    cats =
+                        randomCategories randSeed
+
                     ( seed, q ) =
-                        createQuestion (Random.initialSeed randSeed) [ USCapitals ]
+                        createQuestion (Random.initialSeed randSeed) cats
                 in
                 Expect.false "is empty" <| isEmptyQuestion q
         , fuzz int "createQuestion returns 5 unique choices " <|
             \randSeed ->
                 let
+                    cats =
+                        randomCategories randSeed
+
                     ( seed, q ) =
-                        createQuestion (Random.initialSeed randSeed) [ USCapitals ]
+                        createQuestion (Random.initialSeed randSeed) cats
                 in
                 Expect.equal 5 <| length <| toList <| choiceNames q
-        , fuzz int "createQuestion returns 5 choices in the same category " <|
+        , fuzz int "createQuestion returns 5 choices in the given categories" <|
             \randSeed ->
                 let
+                    cats =
+                        randomCategories 25
+
                     ( seed, q ) =
-                        createQuestion (Random.initialSeed randSeed) [ USCapitals ]
+                        createQuestion (Random.initialSeed randSeed) cats
                 in
-                Expect.equal 5 <| length <| toList <| choiceNames q
+                Expect.true "all choices are in the categories specified"
+                    (all
+                        ((==) True)
+                        (map
+                            (\c -> member c cats)
+                            (choiceCategories q)
+                        )
+                    )
         , todo "Need to test that it only returns correct categories"
         ]
