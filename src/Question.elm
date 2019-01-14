@@ -1,4 +1,10 @@
-module Question exposing (Category(..), Question, createQuestion)
+module Question exposing
+    ( Category(..)
+    , Question
+    , allCategories
+    , createQuestion
+    , favoredCategory
+    )
 
 import List exposing (drop, filter, head, length, member, reverse, sortBy, take)
 import Maybe exposing (withDefault)
@@ -10,7 +16,6 @@ type Category
     = USCapitals
     | MXCapitals
     | WorldCapitals
-    | EmptyCategory
 
 
 type alias Choice =
@@ -29,6 +34,13 @@ type alias Question =
     , seChoice : Choice
     , swChoice : Choice
     }
+
+
+{-| used in testing
+-}
+allCategories : List Category
+allCategories =
+    [ USCapitals, MXCapitals, WorldCapitals ]
 
 
 {-| create a multiple choice question by randomly selecting choices
@@ -90,8 +102,14 @@ emptyChoice =
     , measureY = 0.0
     , city = "empty"
     , state = "empty"
-    , category = EmptyCategory
+    , category = USCapitals
     }
+
+
+{-| Default category selection, used in tests
+-}
+favoredCategory =
+    USCapitals
 
 
 allChoices : List Choice

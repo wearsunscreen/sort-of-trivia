@@ -4,7 +4,7 @@ import Expect exposing (Expectation)
 import Fuzz exposing (Fuzzer, int, list, string)
 import List exposing (all, any, foldl, length, map, member, range)
 import List.Extra exposing (unique, zip)
-import Question exposing (Category(..), Question, createQuestion)
+import Question exposing (Category(..), Question, allCategories, createQuestion, favoredCategory)
 import Random exposing (Generator, initialSeed, step)
 import Set exposing (Set, fromList, toList)
 import Test exposing (..)
@@ -49,17 +49,6 @@ choiceNames q =
         ]
 
 
-isEmptyQuestion : Question -> Bool
-isEmptyQuestion q =
-    any ((==) True)
-        [ q.centerChoice.category == EmptyCategory
-        , q.neChoice.category == EmptyCategory
-        , q.nwChoice.category == EmptyCategory
-        , q.seChoice.category == EmptyCategory
-        , q.swChoice.category == EmptyCategory
-        ]
-
-
 {-| stole this from Random.elm, don't know why I couldn't import it
 -}
 bool : Generator Bool
@@ -71,11 +60,7 @@ randomCategories : Int -> List Category
 randomCategories seed =
     let
         cats =
-            randomlyExcludeElements seed
-                [ USCapitals
-                , MXCapitals
-                , WorldCapitals
-                ]
+            randomlyExcludeElements seed allCategories
     in
     case cats of
         [] ->
@@ -124,7 +109,7 @@ suite =
                     ( seed, q ) =
                         createQuestion (Random.initialSeed randSeed) cats
                 in
-                Expect.false "is empty" <| isEmptyQuestion q
+                Expect.greaterThan 0 <| String.length q.centerChoice.city
         , fuzz int "createQuestion returns 5 unique choices " <|
             \randSeed ->
                 let
@@ -152,4 +137,21 @@ suite =
                             (choiceCategories q)
                         )
                     )
+        , fuzz int "createQuestion returns choices from multiple categories" <|
+            \randSeed ->
+                let
+                    cats =
+                        randomCategories 25
+
+                    ( _, q1 ) =
+                        createQuestion (Random.initialSeed randSeed) cats
+
+                    ( _, q2 ) =
+                        createQuestion (Random.initialSeed (randSeed + 1)) cats
+
+                    ( _, q3 ) =
+                        createQuestion (Random.initialSeed (randSeed + 2)) cats
+                in
+                Expect.greaterThan 1
+                    (length (List.concatMap choiceCategories [ q1, q2, q3 ]))
         ]
