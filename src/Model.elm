@@ -23,6 +23,7 @@ type alias Item =
 type alias Model =
     { draggable : DnD.Draggable () Item
     , randomSeed : Maybe Seed
+    , question : Question
     , startTime : Maybe Posix
     }
 

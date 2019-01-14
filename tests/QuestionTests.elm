@@ -152,5 +152,4 @@ suite =
                             (choiceCategories q)
                         )
                     )
-        , todo "Need to test that it only returns correct categories"
         ]

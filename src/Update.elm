@@ -12,6 +12,7 @@ init : () -> ( Model, Cmd Msg )
 init _ =
     ( { draggable = dnd.model
       , randomSeed = Nothing
+      , question = createQuestion (initialSeed 1)
       , startTime = Nothing
       }
     , Cmd.none
@@ -40,9 +41,14 @@ update action model =
             ( model, Cmd.none )
 
         StartApp time ->
+            let
+                seed =
+                    Just (initialSeed (posixToMillis time))
+            in
             ( { model
                 | startTime = Just time
-                , randomSeed = Just (initialSeed (posixToMillis time))
+                , randomSeed = seed
+                , question = seed
               }
             , Cmd.none
             )
