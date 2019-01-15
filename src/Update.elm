@@ -3,16 +3,18 @@ module Update exposing (init, subs, update)
 import DnD exposing (Draggable, MousePosition)
 import Maybe exposing (withDefault)
 import Model exposing (..)
+import Question exposing (Question, allCategories, createQuestion)
 import Random exposing (Seed, initialSeed)
 import Task exposing (Task, perform)
 import Time exposing (now, posixToMillis)
+import Tuple exposing (second)
 
 
 init : () -> ( Model, Cmd Msg )
 init _ =
     ( { draggable = dnd.model
       , randomSeed = Nothing
-      , question = createQuestion (initialSeed 1)
+      , question = createQuestion (initialSeed 1) allCategories |> second
       , startTime = Nothing
       }
     , Cmd.none
@@ -42,13 +44,13 @@ update action model =
 
         StartApp time ->
             let
-                seed =
-                    Just (initialSeed (posixToMillis time))
+                ( s, q ) =
+                    createQuestion (initialSeed (posixToMillis time)) allCategories
             in
             ( { model
                 | startTime = Just time
-                , randomSeed = seed
-                , question = seed
+                , randomSeed = Just s
+                , question = q
               }
             , Cmd.none
             )

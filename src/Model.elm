@@ -2,6 +2,7 @@ module Model exposing (Id, Item, Model, Msg(..), dnd)
 
 import DnD exposing (Draggable)
 import Maybe exposing (Maybe)
+import Question exposing (Question)
 import Random exposing (Seed)
 import Time exposing (Posix)
 

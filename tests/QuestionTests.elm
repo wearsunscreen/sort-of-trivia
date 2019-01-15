@@ -4,13 +4,29 @@ import Expect exposing (Expectation)
 import Fuzz exposing (Fuzzer, int, list, string)
 import List exposing (all, any, foldl, length, map, member, range)
 import List.Extra exposing (unique, zip)
-import Question exposing (Category(..), Question, allCategories, createQuestion, favoredCategory)
+import Question
+    exposing
+        ( Category(..)
+        , Question
+        , allCategories
+        , choiceNames
+        , createQuestion
+        , favoredCategory
+        )
 import Random exposing (Generator, initialSeed, step)
-import Set exposing (Set, fromList, toList)
 import Test exposing (..)
 import Tuple exposing (first, second)
 
 
+{-| stole this from Random.elm, don't know why I couldn't import it
+-}
+bool : Generator Bool
+bool =
+    Random.map ((==) 1) (Random.int 0 1)
+
+
+{-| Get all the categories from all the choices of a question
+-}
 choiceCategories : Question -> List Category
 choiceCategories q =
     let
@@ -38,29 +54,25 @@ choiceCategories q =
         ]
 
 
-choiceNames : Question -> Set String
-choiceNames q =
-    fromList
-        [ q.centerChoice.city
-        , q.neChoice.city
-        , q.nwChoice.city
-        , q.seChoice.city
-        , q.swChoice.city
-        ]
-
-
-{-| stole this from Random.elm, don't know why I couldn't import it
+{-| Get all the names from all the choices of a question
 -}
-bool : Generator Bool
-bool =
-    Random.map ((==) 1) (Random.int 0 1)
+choiceNames : Question -> List String
+choiceNames q =
+    [ q.centerChoice.name
+    , q.neChoice.name
+    , q.nwChoice.name
+    , q.seChoice.name
+    , q.swChoice.name
+    ]
 
 
+{-| Pick a random set of Categories
+-}
 randomCategories : Int -> List Category
 randomCategories seed =
     let
         cats =
-            randomlyExcludeElements seed allCategories
+            randomSubset seed allCategories
     in
     case cats of
         [] ->
@@ -70,8 +82,10 @@ randomCategories seed =
             cats
 
 
-randomlyExcludeElements : Int -> List a -> List a
-randomlyExcludeElements seed list =
+{-| Pick a random subset of a list
+-}
+randomSubset : Int -> List a -> List a
+randomSubset seed list =
     let
         bools =
             List.range seed (length list + seed)
@@ -94,40 +108,38 @@ suite : Test
 suite =
     describe "Test Question.createQuestion"
         [ fuzz int "Seeds should not repeat" <|
-            \randomSeed ->
+            \r ->
                 let
                     seed =
-                        Random.initialSeed randomSeed
+                        Random.initialSeed r
                 in
                 Expect.notEqual seed <| first <| createQuestion seed [ USCapitals ]
         , fuzz int "createQuestion returns a non-empty question" <|
-            \randSeed ->
+            \r ->
                 let
-                    cats =
-                        randomCategories randSeed
-
                     ( seed, q ) =
-                        createQuestion (Random.initialSeed randSeed) cats
+                        createQuestion
+                            (Random.initialSeed r)
+                            (randomCategories r)
                 in
-                Expect.greaterThan 0 <| String.length q.centerChoice.city
+                Expect.greaterThan 0 <| String.length q.centerChoice.name
         , fuzz int "createQuestion returns 5 unique choices " <|
-            \randSeed ->
+            \r ->
                 let
-                    cats =
-                        randomCategories randSeed
-
                     ( seed, q ) =
-                        createQuestion (Random.initialSeed randSeed) cats
+                        createQuestion
+                            (Random.initialSeed r)
+                            (randomCategories r)
                 in
-                Expect.equal 5 <| length <| toList <| choiceNames q
+                Expect.equal 5 <| length <| choiceNames q
         , fuzz int "createQuestion returns 5 choices in the given categories" <|
-            \randSeed ->
+            \r ->
                 let
                     cats =
-                        randomCategories 25
+                        randomCategories r
 
                     ( seed, q ) =
-                        createQuestion (Random.initialSeed randSeed) cats
+                        createQuestion (Random.initialSeed r) cats
                 in
                 Expect.true "all choices are in the categories specified"
                     (all
@@ -137,21 +149,28 @@ suite =
                             (choiceCategories q)
                         )
                     )
-        , fuzz int "createQuestion returns choices from multiple categories" <|
-            \randSeed ->
+        , fuzz3 int int int "createQuestion returns choices from multiple categories" <|
+            \r1 r2 r3 ->
                 let
-                    cats =
-                        randomCategories 25
-
                     ( _, q1 ) =
-                        createQuestion (Random.initialSeed randSeed) cats
+                        createQuestion (Random.initialSeed r1) allCategories
 
                     ( _, q2 ) =
-                        createQuestion (Random.initialSeed (randSeed + 1)) cats
+                        createQuestion (Random.initialSeed r2) allCategories
 
                     ( _, q3 ) =
-                        createQuestion (Random.initialSeed (randSeed + 2)) cats
+                        createQuestion (Random.initialSeed r3) allCategories
                 in
                 Expect.greaterThan 1
                     (length (List.concatMap choiceCategories [ q1, q2, q3 ]))
+        , fuzz2 int int "createQuestion returns different questions for different seeds" <|
+            \rand1 rand2 ->
+                let
+                    ( _, q1 ) =
+                        createQuestion (Random.initialSeed rand1) [ favoredCategory ]
+
+                    ( _, q2 ) =
+                        createQuestion (Random.initialSeed rand2) [ favoredCategory ]
+                in
+                Expect.notEqual q1 q2
         ]

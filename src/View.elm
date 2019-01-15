@@ -1,4 +1,4 @@
-module View exposing (..)
+module View exposing (view, viewStuff, viewWelcome)
 
 import Browser exposing (Document)
 import Html exposing (..)
@@ -12,16 +12,17 @@ import Time exposing (posixToMillis)
 
 view : Model -> Document Msg
 view model =
-    let 
-        b =  case model.startTime of
-            Nothing ->
-                viewWelcome model
+    let
+        b =
+            case model.startTime of
+                Nothing ->
+                    viewWelcome model
 
-            Just t ->
-                viewStuff model
-    in 
-    { title = "Elm App Template"
-    , body =  [b]
+                Just t ->
+                    viewStuff model
+    in
+    { title = "Sort of Trivia"
+    , body = [ b ]
     }
 
 
@@ -54,13 +55,24 @@ viewStuff model =
                 Just t ->
                     t |> posixToMillis |> fromInt
     in
-        div []
-            [ p []
-                [ text "Start time is "
-                , text time
-                ]
-            , p []
-                [ text "Your psuedo random number is  "
-                , text seed
-                ]
+    div []
+        [ p []
+            [ text model.question.centerChoice.name
+            , br [] []
+            , text model.question.neChoice.name
+            , br [] []
+            , text model.question.nwChoice.name
+            , br [] []
+            , text model.question.seChoice.name
+            , br [] []
+            , text model.question.swChoice.name
             ]
+        , p []
+            [ text "Start time is  "
+            , text time
+            ]
+        , p []
+            [ text "Your psuedo random number is  "
+            , text seed
+            ]
+        ]
