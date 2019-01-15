@@ -9,7 +9,6 @@ import Question
         ( Category(..)
         , Question
         , allCategories
-        , choiceNames
         , createQuestion
         , favoredCategory
         )

@@ -2,7 +2,6 @@ module Question exposing
     ( Category(..)
     , Question
     , allCategories
-    , choiceNames
     , createQuestion
     , favoredCategory
     )
@@ -58,31 +57,40 @@ createQuestion seed cats =
                 _ ->
                     cats
 
-        goodChoices =
-            filter (\c -> member c.category cats_)
+        center : List Choice
+        center =
+            filter (\c -> member c.category cats_) allChoices
                 |> centerChoices
 
-        cc =
-            withDefault emptyChoice <| head goodChoices
+        getRandomElement : Seed -> List a -> ( Seed, Maybe a )
+        getRandomElement s list =
+            let
+                ( index, ss ) =
+                    step (int 0 (length list - 1)) s
+            in
+            ( ss, drop index list |> head )
 
-        ne =
-            withDefault emptyChoice <| head <| drop 1 goodChoices
+        ( s1, cc ) =
+            getRandomElement seed center
 
-        nw =
-            withDefault emptyChoice <| head <| drop 2 goodChoices
+        ( s2, ne ) =
+            getRandomElement s1 center
 
-        se =
-            withDefault emptyChoice <| head <| drop 3 goodChoices
+        ( s3, nw ) =
+            getRandomElement s2 center
 
-        sw =
-            withDefault emptyChoice <| head <| drop 4 goodChoices
+        ( s4, se ) =
+            getRandomElement s3 center
+
+        ( s5, sw ) =
+            getRandomElement s4 center
     in
-    ( step (int 1 10) seed |> second
-    , { centerChoice = cc
-      , neChoice = ne
-      , nwChoice = nw
-      , seChoice = se
-      , swChoice = sw
+    ( s5
+    , { centerChoice = withDefault emptyChoice cc
+      , neChoice = withDefault emptyChoice ne
+      , nwChoice = withDefault emptyChoice nw
+      , seChoice = withDefault emptyChoice se
+      , swChoice = withDefault emptyChoice sw
       }
     )
 
@@ -91,7 +99,7 @@ centerChoices : List Choice -> List Choice
 centerChoices choices =
     let
         margin =
-            length choices // 10
+            length choices // 5
 
         namesOf =
             map (\c -> c.name)
