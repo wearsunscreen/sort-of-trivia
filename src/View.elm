@@ -57,15 +57,15 @@ viewStuff model =
     in
     div []
         [ p []
-            [ text model.question.centerChoice.name
+            [ text <| "center = " ++ model.question.centerChoice.name
             , br [] []
-            , text model.question.neChoice.name
+            , text <| "nw = " ++ model.question.nwChoice.name
             , br [] []
-            , text model.question.nwChoice.name
+            , text <| "ne = " ++ model.question.neChoice.name
             , br [] []
-            , text model.question.seChoice.name
+            , text <| "sw = " ++ model.question.swChoice.name
             , br [] []
-            , text model.question.swChoice.name
+            , text <| "se = " ++ model.question.seChoice.name
             ]
         , p []
             [ text "Start time is  "

@@ -3,7 +3,7 @@ module Update exposing (init, subs, update)
 import DnD exposing (Draggable, MousePosition)
 import Maybe exposing (withDefault)
 import Model exposing (..)
-import Question exposing (Question, allCategories, createQuestion)
+import Question exposing (Question, allCategories, createQuestion, favoredCategory)
 import Random exposing (Seed, initialSeed)
 import Task exposing (Task, perform)
 import Time exposing (now, posixToMillis)
@@ -14,7 +14,7 @@ init : () -> ( Model, Cmd Msg )
 init _ =
     ( { draggable = dnd.model
       , randomSeed = Nothing
-      , question = createQuestion (initialSeed 1) allCategories |> second
+      , question = createQuestion (initialSeed 1) [ favoredCategory ] |> second
       , startTime = Nothing
       }
     , Cmd.none
@@ -45,7 +45,7 @@ update action model =
         StartApp time ->
             let
                 ( s, q ) =
-                    createQuestion (initialSeed (posixToMillis time)) allCategories
+                    createQuestion (initialSeed (posixToMillis time)) []
             in
             ( { model
                 | startTime = Just time

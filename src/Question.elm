@@ -44,12 +44,27 @@ allCategories =
     [ USCapitals, MXCapitals, WorldCapitals ]
 
 
+isAbove : Choice -> Choice -> Bool
+isAbove center x =
+    x.measureY > center.measureY
+
+
+isLeftOf : Choice -> Choice -> Bool
+isLeftOf center x =
+    x.measureX < center.measureX
+
+
+partition : (a -> Bool) -> List a -> ( List a, List a )
+partition pred xs =
+    ( filter pred xs, filter (pred >> not) xs )
+
+
 {-| create a multiple choice question by randomly selecting choices
 -}
 createQuestion : Seed -> List Category -> ( Seed, Question )
 createQuestion seed cats =
     let
-        cats_ =
+        myCats =
             case cats of
                 [] ->
                     [ USCapitals ]
@@ -57,10 +72,16 @@ createQuestion seed cats =
                 _ ->
                     cats
 
-        center : List Choice
+        justMyCats : List Choice
+        justMyCats =
+            filter
+                (\c ->
+                    member c.category myCats
+                )
+                allChoices
+
         center =
-            filter (\c -> member c.category cats_) allChoices
-                |> centerChoices
+            centerChoices justMyCats
 
         getRandomElement : Seed -> List a -> ( Seed, Maybe a )
         getRandomElement s list =
@@ -73,17 +94,29 @@ createQuestion seed cats =
         ( s1, cc ) =
             getRandomElement seed center
 
+        nonCenter =
+            filter ((/=) (withDefault emptyChoice cc)) justMyCats
+
+        ( left, right ) =
+            partition (isLeftOf (withDefault emptyChoice cc)) nonCenter
+
+        ( topLeft, bottomLeft ) =
+            partition (isAbove (withDefault emptyChoice cc)) left
+
+        ( topRight, bottomRight ) =
+            partition (isAbove (withDefault emptyChoice cc)) right
+
         ( s2, ne ) =
-            getRandomElement s1 center
+            getRandomElement s1 topRight
 
         ( s3, nw ) =
-            getRandomElement s2 center
+            getRandomElement s2 topLeft
 
         ( s4, se ) =
-            getRandomElement s3 center
+            getRandomElement s3 bottomRight
 
         ( s5, sw ) =
-            getRandomElement s4 center
+            getRandomElement s4 bottomLeft
     in
     ( s5
     , { centerChoice = withDefault emptyChoice cc
@@ -95,31 +128,35 @@ createQuestion seed cats =
     )
 
 
+{-| Remove some of the options from the edges so that we can choose a
+-- centerish option
+-}
 centerChoices : List Choice -> List Choice
 centerChoices choices =
     let
         margin =
-            length choices // 5
+            -- 8 or greater and we don't leave enough edge pieces for a set of 31 choices
+            length choices // 7
 
         namesOf =
             map (\c -> c.name)
 
         left =
-            sortBy .measureX allChoices |> take margin |> namesOf
+            sortBy .measureX choices |> take margin |> namesOf
 
         right =
-            sortBy .measureX allChoices |> reverse |> take margin |> namesOf
+            sortBy .measureX choices |> reverse |> take margin |> namesOf
 
         top =
-            sortBy .measureY allChoices |> take margin |> namesOf
+            sortBy .measureY choices |> take margin |> namesOf
 
         bottom =
-            sortBy .measureY allChoices |> reverse |> take margin |> namesOf
+            sortBy .measureY choices |> reverse |> take margin |> namesOf
 
         edges =
             unique (left ++ right ++ top ++ bottom)
     in
-    filter (\c -> not (member c.name edges)) allChoices
+    filter (\c -> not (member c.name edges)) choices
 
 
 emptyChoice : Choice
