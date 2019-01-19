@@ -59,6 +59,37 @@ partition pred xs =
     ( filter pred xs, filter (pred >> not) xs )
 
 
+{-| Remove some of the options from the edges so that we can choose a
+-- centerish option
+-}
+centerChoices : List Choice -> List Choice
+centerChoices choices =
+    let
+        margin =
+            -- 8 or greater and we don't leave enough edge pieces for a set of 31 choices
+            length choices // 7
+
+        namesOf =
+            map (\c -> c.name)
+
+        left =
+            sortBy .measureX choices |> take margin |> namesOf
+
+        right =
+            sortBy .measureX choices |> reverse |> take margin |> namesOf
+
+        top =
+            sortBy .measureY choices |> take margin |> namesOf
+
+        bottom =
+            sortBy .measureY choices |> reverse |> take margin |> namesOf
+
+        edges =
+            unique (left ++ right ++ top ++ bottom)
+    in
+    filter (\c -> not (member c.name edges)) choices
+
+
 {-| create a multiple choice question by randomly selecting choices
 -}
 createQuestion : Seed -> List Category -> ( Seed, Question )
@@ -126,37 +157,6 @@ createQuestion seed cats =
       , swChoice = withDefault emptyChoice sw
       }
     )
-
-
-{-| Remove some of the options from the edges so that we can choose a
--- centerish option
--}
-centerChoices : List Choice -> List Choice
-centerChoices choices =
-    let
-        margin =
-            -- 8 or greater and we don't leave enough edge pieces for a set of 31 choices
-            length choices // 7
-
-        namesOf =
-            map (\c -> c.name)
-
-        left =
-            sortBy .measureX choices |> take margin |> namesOf
-
-        right =
-            sortBy .measureX choices |> reverse |> take margin |> namesOf
-
-        top =
-            sortBy .measureY choices |> take margin |> namesOf
-
-        bottom =
-            sortBy .measureY choices |> reverse |> take margin |> namesOf
-
-        edges =
-            unique (left ++ right ++ top ++ bottom)
-    in
-    filter (\c -> not (member c.name edges)) choices
 
 
 emptyChoice : Choice

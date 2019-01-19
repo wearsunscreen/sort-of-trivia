@@ -23,7 +23,7 @@ type alias Item =
 
 type alias Model =
     { draggable : DnD.Draggable () Item
-    , randomSeed : Maybe Seed
+    , randomSeed : Seed
     , question : Question
     , startTime : Maybe Posix
     }
@@ -33,6 +33,7 @@ type Msg
     = CloseWelcomeScreen
     | DropToGrid Item
     | DragMsg (DnD.Msg () Item)
+    | NextGame
     | StartApp Posix
 
 
