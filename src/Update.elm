@@ -12,9 +12,10 @@ import Tuple exposing (second)
 
 init : () -> ( Model, Cmd Msg )
 init _ =
-    ( { draggable = dnd.model
+    ( { answers = []
+      , draggable = dnd.model
       , randomSeed = initialSeed 0
-      , question = createQuestion (initialSeed 1) [ favoredCategory ] |> second
+      , question = createQuestion (initialSeed 2) [ favoredCategory ] |> second
       , startTime = Nothing
       }
     , Cmd.none
@@ -42,7 +43,7 @@ update action model =
         DropToGrid item ->
             ( model, Cmd.none )
 
-        NextGame ->
+        NextQuestion ->
             let
                 ( s, q ) =
                     createQuestion model.randomSeed []

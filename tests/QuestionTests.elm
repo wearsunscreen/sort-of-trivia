@@ -4,14 +4,7 @@ import Expect exposing (Expectation)
 import Fuzz exposing (Fuzzer, int, list, string)
 import List exposing (all, any, foldl, length, map, member, range)
 import List.Extra exposing (unique, zip)
-import Question
-    exposing
-        ( Category(..)
-        , Question
-        , allCategories
-        , createQuestion
-        , favoredCategory
-        )
+import Question exposing (..)
 import Random exposing (Generator, initialSeed, step)
 import Test exposing (..)
 import Tuple exposing (first, second)
@@ -24,7 +17,7 @@ bool =
     Random.map ((==) 1) (Random.int 0 1)
 
 
-{-| Get all the categories from all the choices of a question
+{-| Get the set of categories from all the choices of a question
 -}
 choiceCategories : Question -> List Category
 choiceCategories q =
@@ -44,24 +37,14 @@ choiceCategories q =
                     else
                         x :: unique xs
     in
-    [ q.centerChoice.category
-    , q.neChoice.category
-    , q.nwChoice.category
-    , q.seChoice.category
-    , q.swChoice.category
-    ]
+    map (\choice -> choice.category) q
 
 
 {-| Get all the names from all the choices of a question
 -}
 choiceNames : Question -> List String
 choiceNames q =
-    [ q.centerChoice.name
-    , q.neChoice.name
-    , q.nwChoice.name
-    , q.seChoice.name
-    , q.swChoice.name
-    ]
+    map (\choice -> choice.name) q
 
 
 {-| Pick a random set of Categories
@@ -120,7 +103,9 @@ suite =
                             (Random.initialSeed r)
                             (randomCategories r)
                 in
-                Expect.greaterThan 0 <| String.length q.centerChoice.name
+                Expect.greaterThan 0 <|
+                    String.length <|
+                        getChoiceNameAt iCC q
         , fuzz int "createQuestion returns 5 unique choices " <|
             \r ->
                 let

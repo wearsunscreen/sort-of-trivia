@@ -1,15 +1,23 @@
 module Question exposing
     ( Category(..)
+    , Choice
     , Question
     , allCategories
     , createQuestion
     , favoredCategory
+    , getChoiceNameAt
+    , iCC
+    , iNE
+    , iNW
+    , iSE
+    , iSW
     )
 
 import List exposing (drop, filter, head, length, map, member, reverse, sortBy, take)
-import List.Extra exposing (unique)
+import List.Extra exposing (getAt, unique)
 import Maybe exposing (withDefault)
 import Random exposing (Seed, int, step)
+import String exposing (fromInt)
 import Tuple exposing (second)
 
 
@@ -29,12 +37,29 @@ type alias Choice =
 
 
 type alias Question =
-    { centerChoice : Choice
-    , neChoice : Choice
-    , nwChoice : Choice
-    , seChoice : Choice
-    , swChoice : Choice
-    }
+    List Choice
+
+
+{-| Indices of choices NW, NE, SE, SW, CC
+-}
+iCC =
+    4
+
+
+iNE =
+    1
+
+
+iNW =
+    0
+
+
+iSE =
+    2
+
+
+iSW =
+    3
 
 
 {-| used in testing
@@ -42,6 +67,27 @@ type alias Question =
 allCategories : List Category
 allCategories =
     [ USCapitals, MXCapitals, WorldCapitals ]
+
+
+{-| Get choice by index
+-}
+getChoiceNameAt : Int -> List Choice -> String
+getChoiceNameAt i list =
+    let
+        prompts =
+            [ "Northwestern most city"
+            , "Northeastern most city"
+            , "Southeastern most city"
+            , "Southwestern most city"
+            , "Centrally located city"
+            ]
+    in
+    case getAt i list of
+        Nothing ->
+            withDefault "Unknown prompt" <| getAt i prompts
+
+        Just c ->
+            c.name
 
 
 isAbove : Choice -> Choice -> Bool
@@ -60,7 +106,8 @@ partition pred xs =
 
 
 {-| Remove some of the options from the edges so that we can choose a
--- centerish option
+-- centerish option. Currently not using this option, just repeats createQuestion
+-- until successful.
 -}
 centerChoices : List Choice -> List Choice
 centerChoices choices =
@@ -111,9 +158,6 @@ createQuestion seed cats =
                 )
                 allChoices
 
-        center =
-            centerChoices justMyCats
-
         getRandomElement : Seed -> List a -> ( Seed, Maybe a )
         getRandomElement s list =
             let
@@ -123,7 +167,7 @@ createQuestion seed cats =
             ( ss, drop index list |> head )
 
         ( s1, cc ) =
-            getRandomElement seed center
+            getRandomElement seed justMyCats
 
         nonCenter =
             filter ((/=) (withDefault emptyChoice cc)) justMyCats
@@ -148,15 +192,25 @@ createQuestion seed cats =
 
         ( s5, sw ) =
             getRandomElement s4 bottomLeft
+
+        choices =
+            [ withDefault emptyChoice cc
+            , withDefault emptyChoice ne
+            , withDefault emptyChoice nw
+            , withDefault emptyChoice se
+            , withDefault emptyChoice sw
+            ]
     in
-    ( s5
-    , { centerChoice = withDefault emptyChoice cc
-      , neChoice = withDefault emptyChoice ne
-      , nwChoice = withDefault emptyChoice nw
-      , seChoice = withDefault emptyChoice se
-      , swChoice = withDefault emptyChoice sw
-      }
-    )
+    -- in case any choices are empty, run again
+    -- in the case of USCapitals, the Southeast quadrant is very sparse
+    -- so will often fail if an Eastern capital is at the center
+    if List.any ((==) emptyChoice) choices then
+        createQuestion
+            (warning "Produced empty choice " cc s5)
+            cats
+
+    else
+        ( s5, choices )
 
 
 emptyChoice : Choice
@@ -173,6 +227,18 @@ emptyChoice =
 -}
 favoredCategory =
     USCapitals
+
+
+{-| Send a message to the console, like Debug.log but doesn't printed value
+-- does not have to match the return value.
+-}
+warning : String -> a -> b -> b
+warning message badValue returnValue =
+    let
+        _ =
+            Debug.log message badValue
+    in
+    returnValue
 
 
 allChoices : List Choice

@@ -1,10 +1,15 @@
 module View exposing (view, viewStuff, viewWelcome)
 
 import Browser exposing (Document)
+import DnD exposing (Draggable)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick, onInput)
+import List exposing (append)
+import List.Extra exposing (getAt)
+import Maybe exposing (withDefault)
 import Model exposing (..)
+import Question exposing (getChoiceNameAt, iCC, iNE, iNW, iSE, iSW)
 import Random exposing (Seed, int, maxInt, minInt, step)
 import String exposing (fromInt)
 import Time exposing (posixToMillis)
@@ -26,12 +31,61 @@ shimming =
     40
 
 
+{-| Draw an answer droppable
+-}
+answerBox : Model -> Int -> Html Msg
+answerBox model index =
+    div (answerStyles (answerOffset index) (answerColor index))
+        [ p []
+            [ text <| getChoiceNameAt index model.answers
+            ]
+        ]
+
+
+answerColor : Int -> String
+answerColor i =
+    let
+        offsets =
+            [ "MediumTurquoise"
+            , "MediumTurquoise"
+            , "MediumTurquoise"
+            , "MediumTurquoise"
+            , "Khaki"
+            ]
+    in
+    getAt i offsets |> withDefault "MintCream"
+
+
+{-| Relative positions of answer droppables
+-}
+answerOffset : Int -> ( Int, Int )
+answerOffset i =
+    let
+        offsets =
+            [ ( 0, 0 )
+            , ( boxWidth + shimming, 0 )
+            , ( boxWidth + shimming, boxHeight + shimming )
+            , ( 0, boxHeight + shimming )
+            , ( (boxWidth + shimming) // 2, (boxHeight + shimming) // 2 )
+            ]
+    in
+    getAt i offsets |> withDefault ( 0, 0 )
+
+
+answerStyles : ( Int, Int ) -> String -> List (Html.Attribute Msg)
+answerStyles ( x, y ) color =
+    styleBox ( x, y )
+        ++ [ style "background-color" color
+           ]
+
+
 px : Int -> String
 px x =
     fromInt x ++ "px"
 
 
-styleBox x y =
+styleBox : ( Int, Int ) -> List (Html.Attribute Msg)
+styleBox ( x, y ) =
     [ style "position" "absolute"
     , style "top" (px y)
     , style "left" (px x)
@@ -44,19 +98,8 @@ styleBox x y =
     ]
 
 
-styleCornerBox x y =
-    styleBox x y
-        ++ [ style "background-color" "MediumTurquoise"
-           ]
-
-
-styleCenterBox x y =
-    styleBox x y
-        ++ [ style "background-color" "Khaki"
-           ]
-
-
-styleGameArea x y =
+styleGameArea : ( Int, Int ) -> List (Html.Attribute Msg)
+styleGameArea ( x, y ) =
     [ style "position" "absolute"
     , style "font-size" "100%"
     , style "top" (px y)
@@ -65,7 +108,6 @@ styleGameArea x y =
     , style "width" (px (boxWidth * 2 + shimming))
     , style "height" (px (boxHeight * 2 + shimming))
     , style "display" "block"
-    , style "border-style" "solid"
     ]
 
 
@@ -87,36 +129,15 @@ view model =
 
 viewStuff : Model -> Html Msg
 viewStuff model =
-    div
-        (styleGameArea margin margin)
-        [ div (styleCornerBox 0 0)
-            [ p []
-                [ text <| "NW = " ++ model.question.nwChoice.name
-                ]
-            ]
-        , div (styleCornerBox (boxWidth + shimming) 0)
-            [ p []
-                [ text <| "ne = " ++ model.question.neChoice.name
-                ]
-            ]
-        , div (styleCornerBox 0 (boxHeight + shimming))
-            [ p []
-                [ text <| "sw = " ++ model.question.swChoice.name
-                ]
-            ]
-        , div (styleCornerBox (boxWidth + shimming) (boxHeight + shimming))
-            [ p []
-                [ text <| "se = " ++ model.question.seChoice.name
-                ]
-            ]
-        , div
-            (styleCenterBox ((boxWidth + shimming) // 2) ((boxHeight + shimming) // 2))
-            [ p []
-                [ text <| "cc = " ++ model.question.centerChoice.name
-                ]
-            ]
+    div []
+        [ div
+            (styleGameArea ( margin, margin ))
+            (List.map
+                (answerBox model)
+                [ iNW, iNE, iSE, iSW, iCC ]
+            )
         , button
-            (styleBox 0 ((boxHeight + shimming) * 2) ++ [ onClick CloseWelcomeScreen ])
+            (styleBox ( margin, (boxHeight + shimming) * 2 + margin ) ++ [ onClick NextQuestion ])
             [ text "Gimme another!" ]
         ]
 
