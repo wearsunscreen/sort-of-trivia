@@ -42,8 +42,12 @@ update action model =
             , Cmd.none
             )
 
-        DropToGrid item ->
-            ( model, Cmd.none )
+        Dropped to choice ->
+            ( { model
+                | pots = choice :: model.pots
+              }
+            , Cmd.none
+            )
 
         NextQuestion ->
             let
