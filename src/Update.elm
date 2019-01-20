@@ -12,9 +12,9 @@ import Tuple exposing (second)
 
 init : () -> ( Model, Cmd Msg )
 init _ =
-    ( { answers = []
-      , draggable = dnd.model
+    ( { draggable = dnd.model
       , randomSeed = initialSeed 0
+      , pots = []
       , question = createQuestion (initialSeed 2) [ favoredCategory ] |> second
       , startTime = Nothing
       }

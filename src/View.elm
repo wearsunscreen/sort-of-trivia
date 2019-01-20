@@ -31,55 +31,6 @@ shimming =
     40
 
 
-{-| Draw an answer droppable
--}
-answerBox : Model -> Int -> Html Msg
-answerBox model index =
-    dnd.droppable ()
-        (answerStyles (answerOffset index) (answerColor index))
-        [ p []
-            [ text <| getChoiceNameAt index model.answers
-            ]
-        ]
-
-
-answerColor : Int -> String
-answerColor i =
-    let
-        offsets =
-            [ "MediumTurquoise"
-            , "MediumTurquoise"
-            , "MediumTurquoise"
-            , "MediumTurquoise"
-            , "Khaki"
-            ]
-    in
-    getAt i offsets |> withDefault "MintCream"
-
-
-{-| Relative positions of answer droppables
--}
-answerOffset : Int -> ( Int, Int )
-answerOffset i =
-    let
-        offsets =
-            [ ( 0, 0 )
-            , ( boxWidth + shimming, 0 )
-            , ( boxWidth + shimming, boxHeight + shimming )
-            , ( 0, boxHeight + shimming )
-            , ( (boxWidth + shimming) // 2, (boxHeight + shimming) // 2 )
-            ]
-    in
-    getAt i offsets |> withDefault ( 0, 0 )
-
-
-answerStyles : ( Int, Int ) -> String -> List (Html.Attribute Msg)
-answerStyles ( x, y ) color =
-    styleBox ( x, y )
-        ++ [ style "background-color" color
-           ]
-
-
 choiceBox : Int -> Choice -> Html Msg
 choiceBox index choice =
     div (choiceStyles ( (boxWidth + shimming) * 2 + margin, margin + (index * (boxHeight // 2)) ))
@@ -109,6 +60,55 @@ choiceStyles ( x, y ) =
     , style "background-color" "lightblue"
     , style "padding" (px 8)
     ]
+
+
+{-| Draw a pot. A pot is a droppable. Choices are dragged and dropped into pots.
+-}
+potBox : Model -> Int -> Html Msg
+potBox model index =
+    dnd.droppable ()
+        (potStyles (potOffset index) (potColor index))
+        [ p []
+            [ text <| getChoiceNameAt index model.pots
+            ]
+        ]
+
+
+potColor : Int -> String
+potColor i =
+    let
+        offsets =
+            [ "MediumTurquoise"
+            , "MediumTurquoise"
+            , "MediumTurquoise"
+            , "MediumTurquoise"
+            , "Khaki"
+            ]
+    in
+    getAt i offsets |> withDefault "MintCream"
+
+
+{-| Relative positions of pot droppables
+-}
+potOffset : Int -> ( Int, Int )
+potOffset i =
+    let
+        offsets =
+            [ ( 0, 0 )
+            , ( boxWidth + shimming, 0 )
+            , ( boxWidth + shimming, boxHeight + shimming )
+            , ( 0, boxHeight + shimming )
+            , ( (boxWidth + shimming) // 2, (boxHeight + shimming) // 2 )
+            ]
+    in
+    getAt i offsets |> withDefault ( 0, 0 )
+
+
+potStyles : ( Int, Int ) -> String -> List (Html.Attribute Msg)
+potStyles ( x, y ) color =
+    styleBox ( x, y )
+        ++ [ style "background-color" color
+           ]
 
 
 px : Int -> String
@@ -165,7 +165,7 @@ viewStuff model =
         ([ div
             (styleGameArea ( margin, margin ))
             (List.map
-                (answerBox model)
+                (potBox model)
                 [ iNW, iNE, iSE, iSW, iCC ]
             )
          , button

@@ -8,9 +8,9 @@ import Time exposing (Posix)
 
 
 type alias Model =
-    { answers : List Choice
-    , draggable : DnD.Draggable () Choice
+    { draggable : DnD.Draggable () Choice
     , randomSeed : Seed
+    , pots : List Choice
     , question : Question
     , startTime : Maybe Posix
     }
