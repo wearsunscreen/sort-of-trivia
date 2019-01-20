@@ -12,6 +12,7 @@ module Question exposing
     , iNW
     , iSE
     , iSW
+    , warning
     )
 
 import List exposing (drop, filter, head, length, map, member, reverse, sortBy, take)

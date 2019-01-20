@@ -66,7 +66,7 @@ choiceStyles ( x, y ) =
 -}
 potBox : Model -> Int -> Html Msg
 potBox model index =
-    dnd.droppable ()
+    dnd.droppable index
         (potStyles (potOffset index) (potColor index))
         [ p []
             [ text <| getChoiceNameAt index model.pots
