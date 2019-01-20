@@ -1,4 +1,4 @@
-module Model exposing (Id, Item, Model, Msg(..), dnd)
+module Model exposing (Model, Msg(..), dnd)
 
 import DnD exposing (Draggable)
 import Maybe exposing (Maybe)
@@ -7,23 +7,9 @@ import Random exposing (Seed)
 import Time exposing (Posix)
 
 
-{-| Id for draggable items
--}
-type alias Id =
-    Int
-
-
-{-| record for draggable items
--}
-type alias Item =
-    { id : Id
-    , text : String
-    }
-
-
 type alias Model =
     { answers : List Choice
-    , draggable : DnD.Draggable () Item
+    , draggable : DnD.Draggable () Choice
     , randomSeed : Seed
     , question : Question
     , startTime : Maybe Posix
@@ -32,8 +18,8 @@ type alias Model =
 
 type Msg
     = CloseWelcomeScreen
-    | DropToGrid Item
-    | DragMsg (DnD.Msg () Item)
+    | DropToGrid Choice
+    | DragMsg (DnD.Msg () Choice)
     | NextQuestion
     | StartApp Posix
 

@@ -2,7 +2,7 @@ module Main exposing (main)
 
 import Browser exposing (document)
 import Model exposing (Model, Msg)
-import Update exposing (subs, update)
+import Update exposing (subscriptions, update)
 import View exposing (view)
 
 
@@ -12,5 +12,5 @@ main =
         { init = Update.init
         , update = Update.update
         , view = View.view
-        , subscriptions = Update.subs
+        , subscriptions = Update.subscriptions
         }

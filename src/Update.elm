@@ -1,4 +1,4 @@
-module Update exposing (init, subs, update)
+module Update exposing (init, subscriptions, update)
 
 import DnD exposing (Draggable, MousePosition)
 import Maybe exposing (withDefault)
@@ -22,9 +22,11 @@ init _ =
     )
 
 
-subs : Model -> Sub Msg
-subs model =
-    Sub.none
+subscriptions : Model -> Sub Msg
+subscriptions model =
+    Sub.batch
+        [ dnd.subscriptions model.draggable
+        ]
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )

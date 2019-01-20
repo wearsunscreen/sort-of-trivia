@@ -6,6 +6,7 @@ module Question exposing
     , createQuestion
     , favoredCategory
     , getChoiceNameAt
+    , getChoiceNames
     , iCC
     , iNE
     , iNW
@@ -88,6 +89,13 @@ getChoiceNameAt i list =
 
         Just c ->
             c.name
+
+
+{-| Get all the names from all the choices of a question
+-}
+getChoiceNames : Question -> List String
+getChoiceNames q =
+    map (\choice -> choice.name) q
 
 
 isAbove : Choice -> Choice -> Bool

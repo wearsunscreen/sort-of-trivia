@@ -40,13 +40,6 @@ choiceCategories q =
     map (\choice -> choice.category) q
 
 
-{-| Get all the names from all the choices of a question
--}
-choiceNames : Question -> List String
-choiceNames q =
-    map (\choice -> choice.name) q
-
-
 {-| Pick a random set of Categories
 -}
 randomCategories : Int -> List Category
@@ -114,7 +107,7 @@ suite =
                             (Random.initialSeed r)
                             (randomCategories r)
                 in
-                Expect.equal 5 <| length <| choiceNames q
+                Expect.equal 5 <| length <| getChoiceNames q
         , fuzz int "createQuestion returns 5 choices in the given categories" <|
             \r ->
                 let

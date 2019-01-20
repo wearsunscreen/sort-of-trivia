@@ -1,15 +1,15 @@
 module View exposing (view, viewStuff, viewWelcome)
 
 import Browser exposing (Document)
-import DnD exposing (Draggable)
+import DnD exposing (Draggable, MousePosition)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick, onInput)
-import List exposing (append)
+import List exposing (append, indexedMap)
 import List.Extra exposing (getAt)
 import Maybe exposing (withDefault)
 import Model exposing (..)
-import Question exposing (getChoiceNameAt, iCC, iNE, iNW, iSE, iSW)
+import Question exposing (Choice, getChoiceNameAt, getChoiceNames, iCC, iNE, iNW, iSE, iSW)
 import Random exposing (Seed, int, maxInt, minInt, step)
 import String exposing (fromInt)
 import Time exposing (posixToMillis)
@@ -35,7 +35,8 @@ shimming =
 -}
 answerBox : Model -> Int -> Html Msg
 answerBox model index =
-    div (answerStyles (answerOffset index) (answerColor index))
+    dnd.droppable ()
+        (answerStyles (answerOffset index) (answerColor index))
         [ p []
             [ text <| getChoiceNameAt index model.answers
             ]
@@ -77,6 +78,37 @@ answerStyles ( x, y ) color =
     styleBox ( x, y )
         ++ [ style "background-color" color
            ]
+
+
+choiceBox : Int -> Choice -> Html Msg
+choiceBox index choice =
+    div (choiceStyles ( (boxWidth + shimming) * 2 + margin, margin + (index * (boxHeight // 2)) ))
+        [ text choice.name ]
+
+
+dragBox : Choice -> Html Msg
+dragBox choice =
+    div
+        [ style "border-radius" (px (shimming // 2))
+        , style "border" (px 3 ++ " solid")
+        , style "border-color" "teal"
+        , style "background-color" "lightblue"
+        , style "padding" (px 8)
+        ]
+        [ text choice.name ]
+
+
+choiceStyles : ( Int, Int ) -> List (Html.Attribute Msg)
+choiceStyles ( x, y ) =
+    [ style "position" "absolute"
+    , style "top" (px y)
+    , style "left" (px x)
+    , style "border-radius" (px (shimming // 2))
+    , style "border" (px 3 ++ " solid")
+    , style "border-color" "teal"
+    , style "background-color" "lightblue"
+    , style "padding" (px 8)
+    ]
 
 
 px : Int -> String
@@ -130,16 +162,23 @@ view model =
 viewStuff : Model -> Html Msg
 viewStuff model =
     div []
-        [ div
+        ([ div
             (styleGameArea ( margin, margin ))
             (List.map
                 (answerBox model)
                 [ iNW, iNE, iSE, iSW, iCC ]
             )
-        , button
+         , button
             (styleBox ( margin, (boxHeight + shimming) * 2 + margin ) ++ [ onClick NextQuestion ])
             [ text "Gimme another!" ]
-        ]
+         , DnD.dragged
+            model.draggable
+            dragBox
+         ]
+            ++ List.indexedMap
+                (\index choice -> dnd.draggable choice [] [ choiceBox index choice ])
+                model.question
+        )
 
 
 viewWelcome : Model -> Html Msg
