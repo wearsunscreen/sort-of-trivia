@@ -42,11 +42,12 @@ update action model =
             , Cmd.none
             )
 
-        Dropped x choice ->
+        Dropped potIndex choice ->
             ( { model
-                | pots = choice :: model.pots
+                | pots =
+                    { choice | potIndex = potIndex } :: model.pots
               }
-            , Question.warning "this is x" x Cmd.none
+            , Cmd.none
             )
 
         NextQuestion ->

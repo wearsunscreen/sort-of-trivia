@@ -96,9 +96,9 @@ suite =
                             (Random.initialSeed r)
                             (randomCategories r)
                 in
-                Expect.greaterThan 0 <|
-                    String.length <|
-                        getChoiceNameAt iCC q
+                Expect.true
+                    "none of the choices have a -1 potIndex, therefore are not empty"
+                    (List.all ((==) True) (List.map (\c -> c.category /= EmptyCategory) q))
         , fuzz int "createQuestion returns 5 unique choices " <|
             \r ->
                 let

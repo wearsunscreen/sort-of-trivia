@@ -6,6 +6,9 @@ import Update exposing (subscriptions, update)
 import View exposing (view)
 
 
+{-| TO DO
+-- Change PerfectFlood to have many droppables and use Dropped Int Metadata formatß
+-}
 main : Program () Model Msg
 main =
     Browser.document
