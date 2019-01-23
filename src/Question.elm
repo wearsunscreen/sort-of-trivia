@@ -177,8 +177,11 @@ getChoiceNameAt i list =
             , "Southwestern most city"
             , "Centrally located city"
             ]
+
+        choice =
+            List.Extra.dropWhile (\c -> c.potIndex /= i) list |> head
     in
-    case getAt i list of
+    case choice of
         Nothing ->
             withDefault "Unknown prompt" <| getAt i prompts
 
