@@ -19,7 +19,7 @@ bool =
 
 {-| Get the set of categories from all the choices of a question
 -}
-choiceCategories : Question -> List Category
+choiceCategories : List Choice -> List Category
 choiceCategories q =
     let
         unique list =

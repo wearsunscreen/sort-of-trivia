@@ -5,7 +5,7 @@ import DnD exposing (Draggable, MousePosition)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick, onInput)
-import List exposing (append, indexedMap)
+import List exposing (append, filter, indexedMap, member)
 import List.Extra exposing (getAt)
 import Maybe exposing (withDefault)
 import Model exposing (..)
@@ -69,7 +69,7 @@ potBox model index =
     dnd.droppable index
         (potStyles (potOffset index) (potColor index))
         [ p []
-            [ text <| getChoiceNameAt index model.pots
+            [ text <| getChoiceNameAt index model.options
             ]
         ]
 
@@ -177,7 +177,7 @@ viewStuff model =
          ]
             ++ List.indexedMap
                 (\index choice -> dnd.draggable choice [] [ choiceBox index choice ])
-                model.question
+                (filter (\choice -> choice.potIndex == -1) model.options)
         )
 
 

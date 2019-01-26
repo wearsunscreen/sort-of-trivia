@@ -1,7 +1,6 @@
 module Question exposing
     ( Category(..)
     , Choice
-    , Question
     , allCategories
     , createQuestion
     , favoredCategory
@@ -39,10 +38,6 @@ type alias Choice =
     }
 
 
-type alias Question =
-    List Choice
-
-
 {-| Indices of choices NW, NE, SE, SW, CC
 -}
 iCC =
@@ -74,7 +69,7 @@ allCategories =
 
 {-| create a multiple choice question by randomly selecting choices
 -}
-createQuestion : Seed -> List Category -> ( Seed, Question )
+createQuestion : Seed -> List Category -> ( Seed, List Choice )
 createQuestion seed cats =
     let
         myCats =
@@ -191,7 +186,7 @@ getChoiceNameAt i list =
 
 {-| Get all the names from all the choices of a question
 -}
-getChoiceNames : Question -> List String
+getChoiceNames : List Choice -> List String
 getChoiceNames q =
     map (\choice -> choice.name) q
 

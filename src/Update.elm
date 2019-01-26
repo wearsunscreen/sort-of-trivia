@@ -1,9 +1,10 @@
 module Update exposing (init, subscriptions, update)
 
 import DnD exposing (Draggable, MousePosition)
+import List exposing (filter, map)
 import Maybe exposing (withDefault)
 import Model exposing (..)
-import Question exposing (Question, allCategories, createQuestion, favoredCategory)
+import Question exposing (Choice, allCategories, createQuestion, favoredCategory)
 import Random exposing (Seed, initialSeed)
 import Task exposing (Task, perform)
 import Time exposing (now, posixToMillis)
@@ -14,8 +15,9 @@ init : () -> ( Model, Cmd Msg )
 init _ =
     ( { draggable = dnd.model
       , randomSeed = initialSeed 0
-      , pots = []
-      , question = createQuestion (initialSeed 2) [ favoredCategory ] |> second
+      , options =
+            createQuestion (initialSeed 2) [ favoredCategory ]
+                |> second
       , startTime = Nothing
       }
     , Cmd.none
@@ -43,9 +45,22 @@ update action model =
             )
 
         Dropped potIndex choice ->
+            let
+                -- if the pot already has a choice, move it back to the unused choices
+                opts =
+                    map
+                        (\c ->
+                            if c.potIndex == potIndex then
+                                { c | potIndex = -1 }
+
+                            else
+                                c
+                        )
+                        model.options
+            in
             ( { model
-                | pots =
-                    { choice | potIndex = potIndex } :: model.pots
+                | options =
+                    { choice | potIndex = potIndex } :: filter (\c -> c /= choice) opts
               }
             , Cmd.none
             )
@@ -57,7 +72,7 @@ update action model =
             in
             ( { model
                 | randomSeed = s
-                , question = q
+                , options = q
               }
             , Cmd.none
             )
@@ -70,7 +85,7 @@ update action model =
             ( { model
                 | startTime = Just time
                 , randomSeed = s
-                , question = q
+                , options = q
               }
             , Cmd.none
             )

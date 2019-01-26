@@ -2,7 +2,7 @@ module Model exposing (Model, Msg(..), dnd)
 
 import DnD
 import Maybe exposing (Maybe)
-import Question exposing (Choice, Question)
+import Question exposing (Choice)
 import Random exposing (Seed)
 import Time exposing (Posix)
 
@@ -18,8 +18,7 @@ type alias DraggableMsg =
 type alias Model =
     { draggable : DnD.Draggable Int Choice
     , randomSeed : Seed
-    , pots : List Choice
-    , question : Question
+    , options : List Choice
     , startTime : Maybe Posix
     }
 
