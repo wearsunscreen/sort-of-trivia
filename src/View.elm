@@ -31,6 +31,64 @@ shimming =
     40
 
 
+boxStyles : ( Int, Int ) -> List (Html.Attribute Msg)
+boxStyles ( x, y ) =
+    [ style "position" "absolute"
+    , style "top" (px y)
+    , style "left" (px x)
+    , style "border-radius" (px shimming)
+    , style "width" (px boxWidth)
+    , style "height" (px boxHeight)
+    , style "line-height" (px (boxHeight - 30))
+    , style "border" (px 3 ++ " solid")
+    , style "border-color" "coral"
+    ]
+
+
+buttonView : Int -> ( String, Msg ) -> Html Msg
+buttonView index ( label, msg ) =
+    button
+        (buttonStyles
+            ( buttonX index, buttonY index )
+            ++ [ onClick msg ]
+        )
+        [ text label ]
+
+
+buttons : Model -> List (Html Msg)
+buttons model =
+    List.indexedMap buttonView
+        [ ( "Test!", TestAnswers )
+        , ( "Reset", ResetQuestion )
+        , ( "Gimme another!", NextQuestion )
+        ]
+
+
+buttonStyles : ( Int, Int ) -> List (Html.Attribute Msg)
+buttonStyles ( x, y ) =
+    [ style "position" "absolute"
+    , style "top" (px y)
+    , style "left" (px x)
+    , style "font-size" "150%"
+    , style "border-radius" (px shimming)
+    , style "height" (px (boxHeight // 3))
+    , style "line-height" (px (boxHeight // 4))
+    , style "border" (px 3 ++ " solid")
+    , style "border-color" "darkslateblue"
+    , style "background-color" "lavender"
+    ]
+
+
+buttonX : Int -> Int
+buttonX iBtn =
+    margin
+
+
+buttonY : Int -> Int
+buttonY iButton =
+    (boxHeight + shimming) * 2 + margin + ((boxHeight // 2) * iButton)
+
+
 choiceBox : Int -> Choice -> Html Msg
 choiceBox index choice =
     div (choiceStyles ( (boxWidth + shimming) * 2 + margin, margin + (index * (boxHeight // 2)) ))
@@ -59,6 +117,19 @@ choiceStyles ( x, y ) =
     , style "border-color" "teal"
     , style "background-color" "lightblue"
     , style "padding" (px 8)
+    ]
+
+
+gameAreaStyles : ( Int, Int ) -> List (Html.Attribute Msg)
+gameAreaStyles ( x, y ) =
+    [ style "position" "absolute"
+    , style "font-size" "100%"
+    , style "top" (px y)
+    , style "left" (px x)
+    , style "text-align" "center"
+    , style "width" (px (boxWidth * 2 + shimming))
+    , style "height" (px (boxHeight * 2 + shimming))
+    , style "display" "block"
     ]
 
 
@@ -106,7 +177,7 @@ potOffset i =
 
 potStyles : ( Int, Int ) -> String -> List (Html.Attribute Msg)
 potStyles ( x, y ) color =
-    styleBox ( x, y )
+    boxStyles ( x, y )
         ++ [ style "background-color" color
            ]
 
@@ -114,33 +185,6 @@ potStyles ( x, y ) color =
 px : Int -> String
 px x =
     fromInt x ++ "px"
-
-
-styleBox : ( Int, Int ) -> List (Html.Attribute Msg)
-styleBox ( x, y ) =
-    [ style "position" "absolute"
-    , style "top" (px y)
-    , style "left" (px x)
-    , style "border-radius" (px shimming)
-    , style "width" (px boxWidth)
-    , style "height" (px boxHeight)
-    , style "line-height" (px (boxHeight - 30))
-    , style "border" (px 3 ++ " solid")
-    , style "border-color" "coral"
-    ]
-
-
-styleGameArea : ( Int, Int ) -> List (Html.Attribute Msg)
-styleGameArea ( x, y ) =
-    [ style "position" "absolute"
-    , style "font-size" "100%"
-    , style "top" (px y)
-    , style "left" (px x)
-    , style "text-align" "center"
-    , style "width" (px (boxWidth * 2 + shimming))
-    , style "height" (px (boxHeight * 2 + shimming))
-    , style "display" "block"
-    ]
 
 
 view : Model -> Document Msg
@@ -163,14 +207,14 @@ viewStuff : Model -> Html Msg
 viewStuff model =
     div []
         ([ div
-            (styleGameArea ( margin, margin ))
+            -- draw the pots
+            (gameAreaStyles ( margin, margin ))
             (List.map
                 (potBox model)
                 [ iNW, iNE, iSE, iSW, iCC ]
             )
-         , button
-            (styleBox ( margin, (boxHeight + shimming) * 2 + margin ) ++ [ onClick NextQuestion ])
-            [ text "Gimme another!" ]
+         , div []
+            (buttons model)
          , DnD.dragged
             model.draggable
             dragBox

@@ -77,6 +77,13 @@ update action model =
             , Cmd.none
             )
 
+        ResetQuestion ->
+            ( { model
+                | options = map (\opt -> { opt | potIndex = -1 }) model.options
+              }
+            , Cmd.none
+            )
+
         StartApp time ->
             let
                 ( s, q ) =
@@ -85,6 +92,18 @@ update action model =
             ( { model
                 | startTime = Just time
                 , randomSeed = s
+                , options = q
+              }
+            , Cmd.none
+            )
+
+        TestAnswers ->
+            let
+                ( s, q ) =
+                    createQuestion model.randomSeed []
+            in
+            ( { model
+                | randomSeed = s
                 , options = q
               }
             , Cmd.none

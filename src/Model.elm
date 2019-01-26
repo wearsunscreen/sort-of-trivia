@@ -28,7 +28,9 @@ type Msg
     | Dropped Int Choice
     | DragMsg (DnD.Msg Int Choice)
     | NextQuestion
+    | ResetQuestion
     | StartApp Posix
+    | TestAnswers
 
 
 dnd =
