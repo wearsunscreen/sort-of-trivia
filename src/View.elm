@@ -9,7 +9,7 @@ import List exposing (append, filter, indexedMap, member)
 import List.Extra exposing (getAt)
 import Maybe exposing (withDefault)
 import Model exposing (..)
-import Question exposing (Choice, getChoiceNameAt, getChoiceNames, iCC, iNE, iNW, iSE, iSW)
+import Question exposing (Choice, Direction(..), getChoiceNameAt, getChoiceNames)
 import Random exposing (Seed, int, maxInt, minInt, step)
 import String exposing (fromInt)
 import Time exposing (posixToMillis)
@@ -55,13 +55,16 @@ buttonView index ( label, msg ) =
         [ text label ]
 
 
-buttons : Model -> List (Html Msg)
+buttons : Model -> Html Msg
 buttons model =
-    List.indexedMap buttonView
-        [ ( "Test!", TestAnswers )
-        , ( "Reset", ResetQuestion )
-        , ( "Gimme another!", NextQuestion )
-        ]
+    div []
+        (List.indexedMap
+            buttonView
+            [ ( "Test!", TestAnswers )
+            , ( "Reset", ResetQuestion )
+            , ( "Gimme another!", NextQuestion )
+            ]
+        )
 
 
 buttonStyles : ( Int, Int ) -> List (Html.Attribute Msg)
@@ -123,7 +126,7 @@ choiceStyles ( x, y ) =
 gameAreaStyles : ( Int, Int ) -> List (Html.Attribute Msg)
 gameAreaStyles ( x, y ) =
     [ style "position" "absolute"
-    , style "font-size" "100%"
+    , style "font-size" "120%"
     , style "top" (px y)
     , style "left" (px x)
     , style "text-align" "center"
@@ -133,30 +136,49 @@ gameAreaStyles ( x, y ) =
     ]
 
 
+toIndex : Direction -> Int
+toIndex dir =
+    case dir of
+        CC ->
+            4
+
+        NE ->
+            1
+
+        NW ->
+            0
+
+        SE ->
+            2
+
+        SW ->
+            3
+
+
 {-| Draw a pot. A pot is a droppable. Choices are dragged and dropped into pots.
 -}
-potBox : Model -> Int -> Html Msg
-potBox model index =
+potBox : Model -> Direction -> Html Msg
+potBox model dir =
+    let
+        index =
+            toIndex dir
+    in
     dnd.droppable index
-        (potStyles (potOffset index) (potColor index))
+        (potStyles (potOffset index) (potColor dir))
         [ p []
             [ text <| getChoiceNameAt index model.options
             ]
         ]
 
 
-potColor : Int -> String
+potColor : Direction -> String
 potColor i =
-    let
-        offsets =
-            [ "MediumTurquoise"
-            , "MediumTurquoise"
-            , "MediumTurquoise"
-            , "MediumTurquoise"
-            , "Khaki"
-            ]
-    in
-    getAt i offsets |> withDefault "MintCream"
+    case i of
+        CC ->
+            "Khaki"
+
+        _ ->
+            "MediumTurquoise"
 
 
 {-| Relative positions of pot droppables
@@ -211,10 +233,9 @@ viewStuff model =
             (gameAreaStyles ( margin, margin ))
             (List.map
                 (potBox model)
-                [ iNW, iNE, iSE, iSW, iCC ]
+                [ NW, NE, SE, SW, CC ]
             )
-         , div []
-            (buttons model)
+         , buttons model
          , DnD.dragged
             model.draggable
             dragBox

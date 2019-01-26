@@ -1,16 +1,12 @@
 module Question exposing
     ( Category(..)
     , Choice
+    , Direction(..)
     , allCategories
     , createQuestion
     , favoredCategory
     , getChoiceNameAt
     , getChoiceNames
-    , iCC
-    , iNE
-    , iNW
-    , iSE
-    , iSW
     )
 
 import List exposing (drop, filter, head, length, map, member, reverse, sortBy, take)
@@ -40,24 +36,34 @@ type alias Choice =
 
 {-| Indices of choices NW, NE, SE, SW, CC
 -}
-iCC =
-    4
+type Direction
+    = CC
+    | NE
+    | NW
+    | SE
+    | SW
 
 
-iNE =
-    1
+
+{- iCC =
+       4
 
 
-iNW =
-    0
+   iNE =
+       1
 
 
-iSE =
-    2
+   iNW =
+       0
 
 
-iSW =
-    3
+   iSE =
+       2
+
+
+   iSW =
+       3
+-}
 
 
 {-| used in testing
