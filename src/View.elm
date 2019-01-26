@@ -242,7 +242,7 @@ viewStuff model =
          ]
             ++ List.indexedMap
                 (\index choice -> dnd.draggable choice [] [ choiceBox index choice ])
-                (filter (\choice -> choice.potIndex == -1) model.options)
+                (filter (\choice -> choice.potDirection == -1) model.options)
         )
 
 

@@ -44,14 +44,14 @@ update action model =
             , Cmd.none
             )
 
-        Dropped potIndex choice ->
+        Dropped potDirection choice ->
             let
                 -- if the pot already has a choice, move it back to the unused choices
                 opts =
                     map
                         (\c ->
-                            if c.potIndex == potIndex then
-                                { c | potIndex = -1 }
+                            if c.potDirection == potDirection then
+                                { c | potDirection = -1 }
 
                             else
                                 c
@@ -60,7 +60,7 @@ update action model =
             in
             ( { model
                 | options =
-                    { choice | potIndex = potIndex } :: filter (\c -> c /= choice) opts
+                    { choice | potDirection = potDirection } :: filter (\c -> c /= choice) opts
               }
             , Cmd.none
             )
@@ -79,7 +79,7 @@ update action model =
 
         ResetQuestion ->
             ( { model
-                | options = map (\opt -> { opt | potIndex = -1 }) model.options
+                | options = map (\opt -> { opt | potDirection = -1 }) model.options
               }
             , Cmd.none
             )
