@@ -52,27 +52,15 @@ testOptions model =
         sw =
             getCorrectAt SW model.options
 
-        testNW : Choice
-        testNW =
-            if
-                List.all ((==) True)
-                    [ nw.measureX < ne.measureX
-                    , nw.measureX < cc.measureX
-                    , nw.measureX < se.measureX
-                    , nw.measureY > sw.measureY
-                    , nw.measureY > cc.measureY
-                    , nw.measureY > se.measureY
-                    ]
-            then
-                ne
+        checkChoice : Choice -> Choice
+        checkChoice c =
+            if c.potDirection /= c.correctDirection then
+                { c | potDirection = Unused }
 
             else
-                { nw | potDirection = Unused }
-
-        opts =
-            [ testNW, se, sw, cc, ne ]
+                c
     in
-    { model | options = opts }
+    { model | options = map checkChoice model.options }
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
