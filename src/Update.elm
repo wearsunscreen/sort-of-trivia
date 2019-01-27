@@ -134,6 +134,6 @@ update action model =
             )
 
         TestAnswers ->
-            ( testOptions model
+            ( testOptions { model | mode = Test }
             , Cmd.none
             )

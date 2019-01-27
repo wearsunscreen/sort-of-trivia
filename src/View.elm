@@ -5,11 +5,11 @@ import DnD exposing (Draggable, MousePosition)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick, onInput)
-import List exposing (append, filter, indexedMap, member)
+import List exposing (append, filter, head, indexedMap, member)
 import List.Extra exposing (getAt)
 import Maybe exposing (withDefault)
 import Model exposing (..)
-import Question exposing (Choice, Direction(..), getChoiceNames, getCorrectAt, getPotNameAt)
+import Question exposing (Choice, Direction(..), getChoiceNames, getCorrectAt)
 import Random exposing (Seed, int, maxInt, minInt, step)
 import String exposing (fromInt)
 import Time exposing (posixToMillis)
@@ -136,26 +136,45 @@ gameAreaStyles ( x, y ) =
     ]
 
 
-toIndex : Direction -> Int
-toIndex dir =
-    case dir of
-        CC ->
-            4
+{-| Get the name of the choice that was dropped into specified pot
+-}
+getPotNameAt : Mode -> Direction -> List Choice -> String
+getPotNameAt mode dir list =
+    let
+        label =
+            case dir of
+                CC ->
+                    "Centrally located city"
 
-        NE ->
-            1
+                -- error, this should never be seen
+                Unused ->
+                    "I'm so confused!"
 
-        NW ->
-            0
+                NE ->
+                    "Northeastern most city"
 
-        SE ->
-            2
+                NW ->
+                    "Northwestern most city"
 
-        SW ->
-            3
+                SE ->
+                    "Southeastern most city"
 
-        Unused ->
-            -1
+                SW ->
+                    "Southwestern most city"
+
+        choice =
+            List.Extra.dropWhile (\c -> c.potDirection /= dir) list |> head
+    in
+    case choice of
+        Nothing ->
+            if mode == Test then
+                "Try Again!"
+
+            else
+                label
+
+        Just c ->
+            c.name
 
 
 {-| Draw a pot. A pot is a droppable. Choices are dragged and dropped into pots.
@@ -179,23 +198,34 @@ potBox model dir =
                     ]
             in
             getAt index offsets |> withDefault ( 0, 0 )
+
+        potColor : Direction -> String
+        potColor i =
+            let
+                c =
+                    getCorrectAt i model.options
+            in
+            if model.mode == Test then
+                if c.correctDirection == c.potDirection then
+                    "LawnGreen"
+
+                else
+                    "Tomato"
+
+            else
+                case i of
+                    CC ->
+                        "Khaki"
+
+                    _ ->
+                        "MediumTurquoise"
     in
     dnd.droppable dir
         (potStyles potOffset (potColor dir))
         [ p []
-            [ text <| getPotNameAt dir model.options
+            [ text <| getPotNameAt model.mode dir model.options
             ]
         ]
-
-
-potColor : Direction -> String
-potColor i =
-    case i of
-        CC ->
-            "Khaki"
-
-        _ ->
-            "MediumTurquoise"
 
 
 potStyles : ( Int, Int ) -> String -> List (Html.Attribute Msg)
@@ -208,6 +238,28 @@ potStyles ( x, y ) color =
 px : Int -> String
 px x =
     fromInt x ++ "px"
+
+
+toIndex : Direction -> Int
+toIndex dir =
+    case dir of
+        CC ->
+            4
+
+        NE ->
+            1
+
+        NW ->
+            0
+
+        SE ->
+            2
+
+        SW ->
+            3
+
+        Unused ->
+            -1
 
 
 view : Model -> Document Msg

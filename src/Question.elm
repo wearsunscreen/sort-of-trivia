@@ -7,7 +7,6 @@ module Question exposing
     , favoredCategory
     , getChoiceNames
     , getCorrectAt
-    , getPotNameAt
     )
 
 import List exposing (drop, filter, head, length, map, member, reverse, sortBy, take)
@@ -171,42 +170,6 @@ getCorrectAt dir list =
 
         Just c ->
             c
-
-
-{-| Get the name of the choice that was dropped into specified pot
--}
-getPotNameAt : Direction -> List Choice -> String
-getPotNameAt dir list =
-    let
-        label =
-            case dir of
-                CC ->
-                    "Centrally located city"
-
-                Unused ->
-                    "I'm so confused!"
-
-                NE ->
-                    "Northeastern most city"
-
-                NW ->
-                    "Northwestern most city"
-
-                SE ->
-                    "Southeastern most city"
-
-                SW ->
-                    "Southwestern most city"
-
-        choice =
-            List.Extra.dropWhile (\c -> c.potDirection /= dir) list |> head
-    in
-    case choice of
-        Nothing ->
-            label
-
-        Just c ->
-            c.name
 
 
 {-| Get all the names from all the choices of a question
