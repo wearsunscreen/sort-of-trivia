@@ -4,7 +4,7 @@ import DnD exposing (Draggable, MousePosition)
 import List exposing (filter, map)
 import Maybe exposing (withDefault)
 import Model exposing (..)
-import Question exposing (Choice, allCategories, createQuestion, favoredCategory)
+import Question exposing (Choice, Direction(..), allCategories, createQuestion, favoredCategory)
 import Random exposing (Seed, initialSeed)
 import Task exposing (Task, perform)
 import Time exposing (now, posixToMillis)
@@ -15,6 +15,7 @@ init : () -> ( Model, Cmd Msg )
 init _ =
     ( { draggable = dnd.model
       , randomSeed = initialSeed 0
+      , mode = Info
       , options =
             createQuestion (initialSeed 2) [ favoredCategory ]
                 |> second
@@ -31,6 +32,13 @@ subscriptions model =
         ]
 
 
+{-| If an choice in in the wrong pot return it to stack
+-}
+testOption : Choice -> Choice
+testOption opt =
+    opt
+
+
 update : Msg -> Model -> ( Model, Cmd Msg )
 update action model =
     case action of
@@ -44,14 +52,14 @@ update action model =
             , Cmd.none
             )
 
-        Dropped potDirection choice ->
+        Dropped potDir choice ->
             let
                 -- if the pot already has a choice, move it back to the unused choices
                 opts =
                     map
                         (\c ->
-                            if c.potDirection == potDirection then
-                                { c | potDirection = -1 }
+                            if c.potDirection == potDir then
+                                { c | potDirection = Lost }
 
                             else
                                 c
@@ -60,7 +68,8 @@ update action model =
             in
             ( { model
                 | options =
-                    { choice | potDirection = potDirection } :: filter (\c -> c /= choice) opts
+                    { choice | potDirection = potDir } :: filter (\c -> c /= choice) opts
+                , mode = Play
               }
             , Cmd.none
             )
@@ -72,6 +81,7 @@ update action model =
             in
             ( { model
                 | randomSeed = s
+                , mode = Play
                 , options = q
               }
             , Cmd.none
@@ -79,7 +89,8 @@ update action model =
 
         ResetQuestion ->
             ( { model
-                | options = map (\opt -> { opt | potDirection = -1 }) model.options
+                | options = map (\opt -> { opt | potDirection = Lost }) model.options
+                , mode = Play
               }
             , Cmd.none
             )
@@ -92,19 +103,16 @@ update action model =
             ( { model
                 | startTime = Just time
                 , randomSeed = s
+                , mode = Play
                 , options = q
               }
             , Cmd.none
             )
 
         TestAnswers ->
-            let
-                ( s, q ) =
-                    createQuestion model.randomSeed []
-            in
             ( { model
-                | randomSeed = s
-                , options = q
+                | mode = Test
+                , options = map (\opt -> testOption opt) model.options
               }
             , Cmd.none
             )

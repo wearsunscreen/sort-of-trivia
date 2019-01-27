@@ -154,6 +154,9 @@ toIndex dir =
         SW ->
             3
 
+        Lost ->
+            -1
+
 
 {-| Draw a pot. A pot is a droppable. Choices are dragged and dropped into pots.
 -}
@@ -162,11 +165,25 @@ potBox model dir =
     let
         index =
             toIndex dir
+
+        -- Relative positions of pot droppables
+        potOffset : ( Int, Int )
+        potOffset =
+            let
+                offsets =
+                    [ ( 0, 0 )
+                    , ( boxWidth + shimming, 0 )
+                    , ( boxWidth + shimming, boxHeight + shimming )
+                    , ( 0, boxHeight + shimming )
+                    , ( (boxWidth + shimming) // 2, (boxHeight + shimming) // 2 )
+                    ]
+            in
+            getAt index offsets |> withDefault ( 0, 0 )
     in
-    dnd.droppable index
-        (potStyles (potOffset index) (potColor dir))
+    dnd.droppable dir
+        (potStyles potOffset (potColor dir))
         [ p []
-            [ text <| getChoiceNameAt index model.options
+            [ text <| getChoiceNameAt dir model.options
             ]
         ]
 
@@ -179,22 +196,6 @@ potColor i =
 
         _ ->
             "MediumTurquoise"
-
-
-{-| Relative positions of pot droppables
--}
-potOffset : Int -> ( Int, Int )
-potOffset i =
-    let
-        offsets =
-            [ ( 0, 0 )
-            , ( boxWidth + shimming, 0 )
-            , ( boxWidth + shimming, boxHeight + shimming )
-            , ( 0, boxHeight + shimming )
-            , ( (boxWidth + shimming) // 2, (boxHeight + shimming) // 2 )
-            ]
-    in
-    getAt i offsets |> withDefault ( 0, 0 )
 
 
 potStyles : ( Int, Int ) -> String -> List (Html.Attribute Msg)
@@ -242,7 +243,7 @@ viewStuff model =
          ]
             ++ List.indexedMap
                 (\index choice -> dnd.draggable choice [] [ choiceBox index choice ])
-                (filter (\choice -> choice.potDirection == -1) model.options)
+                (filter (\choice -> choice.potDirection == Lost) model.options)
         )
 
 

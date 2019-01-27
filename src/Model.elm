@@ -1,23 +1,30 @@
-module Model exposing (Model, Msg(..), dnd)
+module Model exposing (Mode(..), Model, Msg(..), dnd)
 
 import DnD
 import Maybe exposing (Maybe)
-import Question exposing (Choice)
+import Question exposing (Choice, Direction(..))
 import Random exposing (Seed)
 import Time exposing (Posix)
 
 
 type alias Draggable =
-    DnD.Draggable Int Choice
+    DnD.Draggable Direction Choice
 
 
 type alias DraggableMsg =
-    DnD.Msg Int Choice
+    DnD.Msg Direction Choice
+
+
+type Mode
+    = Info
+    | Play
+    | Test
 
 
 type alias Model =
-    { draggable : DnD.Draggable Int Choice
+    { draggable : DnD.Draggable Direction Choice
     , randomSeed : Seed
+    , mode : Mode
     , options : List Choice
     , startTime : Maybe Posix
     }
@@ -25,8 +32,8 @@ type alias Model =
 
 type Msg
     = CloseWelcomeScreen
-    | Dropped Int Choice
-    | DragMsg (DnD.Msg Int Choice)
+    | Dropped Direction Choice
+    | DragMsg (DnD.Msg Direction Choice)
     | NextQuestion
     | ResetQuestion
     | StartApp Posix
