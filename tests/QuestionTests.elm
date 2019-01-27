@@ -78,6 +78,8 @@ randomSubset seed list =
     foldl f [] bools
 
 
+{-| This is the suite of tests run by elm-test
+-}
 suite : Test
 suite =
     describe "Test Question.createQuestion"
@@ -97,7 +99,7 @@ suite =
                             (randomCategories r)
                 in
                 Expect.true
-                    "none of the choices have a -1 potDirection, therefore are not empty"
+                    "none of the choices have EmptyCategory"
                     (List.all ((==) True) (List.map (\c -> c.category /= EmptyCategory) q))
         , fuzz int "createQuestion returns 5 unique choices " <|
             \r ->
@@ -108,6 +110,15 @@ suite =
                             (randomCategories r)
                 in
                 Expect.equal 5 <| length <| getChoiceNames q
+        , fuzz int "createQuestion sets the directions correctly " <|
+            \r ->
+                let
+                    ( seed, q ) =
+                        createQuestion
+                            (Random.initialSeed r)
+                            (randomCategories r)
+                in
+                Expect.true "All the directions are correct" (testOptions q)
         , fuzz int "createQuestion returns 5 choices in the given categories" <|
             \r ->
                 let
@@ -150,3 +161,84 @@ suite =
                 in
                 Expect.notEqual q1 q2
         ]
+
+
+{-| If an choice in in the wrong pot return it to stack
+-}
+testOptions : List Choice -> Bool
+testOptions options =
+    let
+        cc =
+            getCorrectAt CC options
+
+        nw =
+            getCorrectAt NW options
+
+        ne =
+            getCorrectAt NE options
+
+        se =
+            getCorrectAt SE options
+
+        sw =
+            getCorrectAt SW options
+
+        testNW : Bool
+        testNW =
+            List.all ((==) True)
+                [ nw.measureX < ne.measureX
+                , nw.measureX < cc.measureX
+                , nw.measureX < se.measureX
+                , nw.measureY > sw.measureY
+                , nw.measureY > cc.measureY
+                , nw.measureY > se.measureY
+                ]
+
+        testNE : Bool
+        testNE =
+            List.all ((==) True)
+                [ ne.measureX > nw.measureX
+                , ne.measureX > cc.measureX
+                , ne.measureX > sw.measureX
+                , ne.measureY > sw.measureY
+                , ne.measureY > cc.measureY
+                , ne.measureY > se.measureY
+                ]
+
+        testSE : Bool
+        testSE =
+            List.all ((==) True)
+                [ se.measureX > nw.measureX
+                , se.measureX > cc.measureX
+                , se.measureX > sw.measureX
+                , se.measureY < cc.measureY
+                , se.measureY < ne.measureY
+                , se.measureY < nw.measureY
+                ]
+
+        testSW : Bool
+        testSW =
+            List.all ((==) True)
+                [ sw.measureX < ne.measureX
+                , sw.measureX < cc.measureX
+                , sw.measureX < se.measureX
+                , sw.measureY < nw.measureY
+                , sw.measureY < ne.measureY
+                , sw.measureY < cc.measureY
+                ]
+
+        testCC : Bool
+        testCC =
+            List.all ((==) True)
+                [ cc.measureX < ne.measureX
+                , cc.measureX < se.measureX
+                , cc.measureX > nw.measureX
+                , cc.measureX > sw.measureX
+                , cc.measureY < nw.measureY
+                , cc.measureY < ne.measureY
+                , cc.measureY > sw.measureY
+                , cc.measureY > se.measureY
+                ]
+    in
+    List.all ((==) True)
+        [ testNW, testNE, testSE, testSW, testCC ]

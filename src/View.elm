@@ -9,7 +9,7 @@ import List exposing (append, filter, indexedMap, member)
 import List.Extra exposing (getAt)
 import Maybe exposing (withDefault)
 import Model exposing (..)
-import Question exposing (Choice, Direction(..), getChoiceNameAt, getChoiceNames)
+import Question exposing (Choice, Direction(..), getChoiceNames, getCorrectAt, getPotNameAt)
 import Random exposing (Seed, int, maxInt, minInt, step)
 import String exposing (fromInt)
 import Time exposing (posixToMillis)
@@ -154,7 +154,7 @@ toIndex dir =
         SW ->
             3
 
-        Lost ->
+        Unused ->
             -1
 
 
@@ -183,7 +183,7 @@ potBox model dir =
     dnd.droppable dir
         (potStyles potOffset (potColor dir))
         [ p []
-            [ text <| getChoiceNameAt dir model.options
+            [ text <| getPotNameAt dir model.options
             ]
         ]
 
@@ -243,7 +243,7 @@ viewStuff model =
          ]
             ++ List.indexedMap
                 (\index choice -> dnd.draggable choice [] [ choiceBox index choice ])
-                (filter (\choice -> choice.potDirection == Lost) model.options)
+                (filter (\choice -> choice.potDirection == Unused) model.options)
         )
 
 

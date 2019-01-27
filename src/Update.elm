@@ -4,7 +4,7 @@ import DnD exposing (Draggable, MousePosition)
 import List exposing (filter, map)
 import Maybe exposing (withDefault)
 import Model exposing (..)
-import Question exposing (Choice, Direction(..), allCategories, createQuestion, favoredCategory)
+import Question exposing (Choice, Direction(..), allCategories, createQuestion, favoredCategory, getCorrectAt)
 import Random exposing (Seed, initialSeed)
 import Task exposing (Task, perform)
 import Time exposing (now, posixToMillis)
@@ -34,9 +34,45 @@ subscriptions model =
 
 {-| If an choice in in the wrong pot return it to stack
 -}
-testOption : Choice -> Choice
-testOption opt =
-    opt
+testOptions : Model -> Model
+testOptions model =
+    let
+        cc =
+            getCorrectAt CC model.options
+
+        nw =
+            getCorrectAt NW model.options
+
+        ne =
+            getCorrectAt NE model.options
+
+        se =
+            getCorrectAt SE model.options
+
+        sw =
+            getCorrectAt SW model.options
+
+        testNW : Choice
+        testNW =
+            if
+                List.all ((==) True)
+                    [ nw.measureX < ne.measureX
+                    , nw.measureX < cc.measureX
+                    , nw.measureX < se.measureX
+                    , nw.measureY > sw.measureY
+                    , nw.measureY > cc.measureY
+                    , nw.measureY > se.measureY
+                    ]
+            then
+                ne
+
+            else
+                { nw | potDirection = Unused }
+
+        opts =
+            [ testNW, se, sw, cc, ne ]
+    in
+    { model | options = opts }
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -59,7 +95,7 @@ update action model =
                     map
                         (\c ->
                             if c.potDirection == potDir then
-                                { c | potDirection = Lost }
+                                { c | potDirection = Unused }
 
                             else
                                 c
@@ -89,7 +125,7 @@ update action model =
 
         ResetQuestion ->
             ( { model
-                | options = map (\opt -> { opt | potDirection = Lost }) model.options
+                | options = map (\opt -> { opt | potDirection = Unused }) model.options
                 , mode = Play
               }
             , Cmd.none
@@ -110,9 +146,6 @@ update action model =
             )
 
         TestAnswers ->
-            ( { model
-                | mode = Test
-                , options = map (\opt -> testOption opt) model.options
-              }
+            ( testOptions model
             , Cmd.none
             )
